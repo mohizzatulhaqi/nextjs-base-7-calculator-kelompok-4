@@ -40,12 +40,14 @@ export default function Home() {
     try {
       const converted = input.replace(/\d+/g, match => parseInt(match, 7).toString(10));
       const resultDecimal = eval(converted);
-      setInput(String(resultDecimal));
+      const resultBase7 = parseInt(String(resultDecimal)).toString(7);
+      setInput(resultBase7);
+      setLastResult(resultBase7); 
     } catch {
       setInput("Error");
+      setLastResult(null);
     }
   };
-  
 
   return (
     <div className={styles.container}>
