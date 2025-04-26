@@ -1,105 +1,86 @@
 "use client";
 
-import {useState} from "react";
+import { useState } from "react";
 import styles from "./page.module.css";
 
 export default function Home() {
-  const [angka1, setAngka1] = useState < string > ("");
-  const [angka2, setAngka2] = useState < string > ("");
-  const [operator, setOperator] = useState < string > ("+");
-  const [hasil, setHasil] = useState < string | null > (null);
+  const [input, setInput] = useState<string>("0");
+  const [lastResult, setLastResult] = useState<string | null>(null);
 
-  const handleNumberInput = (value: string, setter: React.Dispatch < React.SetStateAction < string >> ) => {
-    const validatedValue = value.replace(/[^0-6]/g, '');
-    setter(validatedValue);
-  };
-
-  const konversiKeDesimal = (angkaBasis7: string): number => parseInt(angkaBasis7, 7);
-  const konversiKeBasis7 = (angkaDesimal: number): string => angkaDesimal.toString(7);
-
-  const hitung = (): void => {
-    try {
-      const a = angka1 ? konversiKeDesimal(angka1) : 0;
-      const b = angka2 ? konversiKeDesimal(angka2) : 0;
-      let hasilDesimal: number | string;
-
-      switch (operator) {
-        case "+":
-          hasilDesimal = a + b;
-          break;
-        case "-":
-          hasilDesimal = a - b;
-          break;
-        case "*":
-          hasilDesimal = a * b;
-          break;
-        case "/":
-          if (b !== 0) {
-            hasilDesimal = a / b;
-            hasilDesimal = Number.isInteger(hasilDesimal) ? konversiKeBasis7(hasilDesimal) : hasilDesimal.toFixed(1);
-          } else {
-            hasilDesimal = "Error: ÷0";
-          }
-          break;
-
-        default:
-          hasilDesimal = 0;
-      }
-
-      setHasil(
-        hasilDesimal === "Pembagi tidak boleh 0" ?
-        "Pembagi tidak boleh 0" :
-        konversiKeBasis7(hasilDesimal as number)
-      );
-    } catch {
-      setHasil("Input tidak valid!");
+  const handleNumberClick = (value: string) => {
+    if (lastResult) {
+      setInput(value);
+      setLastResult(null); 
+    } else {
+      setInput(prev => (prev === "0" ? value : prev + value));
     }
   };
 
+  const handleOperatorClick = (operator: string) => {
+    if (/[+\-*/]$/.test(input)) {
+      setInput(prev => prev.slice(0, -1) + operator);
+    } else {
+      setInput(prev => prev + operator);
+    }
+  };
+
+  const clearInput = () => {
+    setInput("0");
+    setLastResult(null); 
+  };
+
+  const deleteLast = () => {
+    setInput(prev => {
+      if (prev.length <= 1) return "0";
+      return prev.slice(0, -1);
+    });
+  };
+
+  const calculateResult = () => {
+    try {
+      const converted = input.replace(/\d+/g, match => parseInt(match, 7).toString(10));
+      const resultDecimal = eval(converted);
+      setInput(String(resultDecimal));
+    } catch {
+      setInput("Error");
+    }
+  };
+  
+
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Kalkulator Basis 7</h1>
-
-        <div className={styles.inputWrapper}>
-          <input
-            type="text"
-            placeholder="Angka pertama (0-6)"
-            value={angka1}
-            onChange={(e) => handleNumberInput(e.target.value, setAngka1)}
-            className={styles.inputField}
-            inputMode="numeric"
-          />
-          <select
-            value={operator}
-            onChange={(e) => setOperator(e.target.value)}
-            className={styles.selectField}
+      <div className={styles.calculator}>
+        <div className={styles.display}>{input}</div>
+        <div className={styles.buttonsGrid}>
+          <button
+            className={`${styles.button} ${styles.functionButton} ${lastResult ? styles.expandButton : ''}`}
+            onClick={clearInput}
           >
-            <option value="+">+</option>
-            <option value="-">−</option>
-            <option value="*">×</option>
-            <option value="/">÷</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Angka kedua (0-6)"
-            value={angka2}
-            onChange={(e) => handleNumberInput(e.target.value, setAngka2)}
-            className={styles.inputField}
-            inputMode="numeric"
-          />
+            AC
+          </button>
+          
+          {!lastResult && (
+            <button className={`${styles.button} ${styles.functionButton}`} onClick={deleteLast}>
+              DEL
+            </button>
+          )}
+
+          <button className={`${styles.button} ${styles.orangeButton}`} onClick={() => handleOperatorClick('+')}>+</button>
+          <button className={`${styles.button} ${styles.orangeButton}`} onClick={() => handleOperatorClick('*')}>×</button>
+
+          <button className={`${styles.button} ${styles.numberButton}`} onClick={() => handleNumberClick('4')}>4</button>
+          <button className={`${styles.button} ${styles.numberButton}`} onClick={() => handleNumberClick('5')}>5</button>
+          <button className={`${styles.button} ${styles.numberButton}`} onClick={() => handleNumberClick('6')}>6</button>
+          <button className={`${styles.button} ${styles.orangeButton}`} onClick={() => handleOperatorClick('-')}>−</button>
+
+          <button className={`${styles.button} ${styles.numberButton}`} onClick={() => handleNumberClick('1')}>1</button>
+          <button className={`${styles.button} ${styles.numberButton}`} onClick={() => handleNumberClick('2')}>2</button>
+          <button className={`${styles.button} ${styles.numberButton}`} onClick={() => handleNumberClick('3')}>3</button>
+          <button className={`${styles.button} ${styles.orangeButton}`} onClick={() => handleOperatorClick('/')}>÷</button>
+
+          <button className={`${styles.button} ${styles.numberButton}`} style={{ gridColumn: "span 2" }} onClick={() => handleNumberClick('0')}>0</button>
+          <button className={`${styles.button} ${styles.equalsButton}`} onClick={calculateResult}>=</button>
         </div>
-
-        <button onClick={hitung} className={styles.button}>
-          Hitung
-        </button>
-
-        {hasil !== null && (
-          <div className={styles.resultBox}>
-            <div className={styles.resultLabel}>Hasil:</div>
-            <div className={styles.resultValue}>{hasil}</div>
-          </div>
-        )}
       </div>
     </div>
   );
