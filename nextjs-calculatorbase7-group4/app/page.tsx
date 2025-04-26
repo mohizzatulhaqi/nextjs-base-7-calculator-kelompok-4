@@ -36,16 +36,30 @@ export default function Home() {
     });
   };
 
+  
   const calculateResult = () => {
     try {
-      const converted = input.replace(/\d+/g, match => parseInt(match, 7).toString(10));
-      const resultDecimal = eval(converted);
-      const resultBase7 = parseInt(String(resultDecimal)).toString(7);
+      const converted = input.replace(/\d+/g, match => parseInt(match, 7).toString(10)); 
+      let resultDecimal = eval(converted);
+
+      if (converted.includes('/')) {
+        resultDecimal = parseFloat(resultDecimal.toFixed(1)); 
+      }
+      const integerPart = Math.floor(resultDecimal);
+      let decimalPart = resultDecimal - integerPart;
+      let resultBase7 = integerPart.toString(7);
+      if (decimalPart > 0) {
+        resultBase7 += ".";
+        for (let i = 0; i < 2; i++) { 
+          decimalPart *= 7;
+          const digit = Math.floor(decimalPart);
+          resultBase7 += digit.toString();
+          decimalPart -= digit;
+        }
+      }
       setInput(resultBase7);
-      setLastResult(resultBase7); 
     } catch {
       setInput("Error");
-      setLastResult(null);
     }
   };
 
